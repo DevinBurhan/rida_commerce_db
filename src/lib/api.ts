@@ -1,0 +1,73 @@
+const API_BASE = "";
+
+function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token");
+}
+
+export async function api<T>(
+  path: string,
+  options: RequestInit & { body?: Record<string, unknown> | string } = {}
+): Promise<T> {
+  const token = getToken();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) {
+    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  }
+  const { body: bodyParam, ...rest } = options as RequestInit & { body?: Record<string, unknown> | string };
+  const fetchBody =
+    bodyParam !== undefined
+      ? typeof bodyParam === "string"
+        ? bodyParam
+        : JSON.stringify(bodyParam)
+      : undefined;
+  const res = await fetch(`${API_BASE}${path}`, { ...rest, headers, body: fetchBody });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || data.error || "Request failed");
+  }
+  return data as T;
+}
+
+export type DashboardSummary = {
+  totalInvoices: number;
+  totalRevenue: number;
+  totalProfit: number;
+};
+
+export type RidaPopulated = {
+  _id: string;
+  ridaName: string;
+  price: number;
+  profit: number;
+};
+
+export type InvoiceItem = {
+  _id: string;
+  invoiceNumber: string;
+  ridaId: string | RidaPopulated;
+  customer: string;
+  reseller: string;
+  amount: number;
+  profit: number;
+  address?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type InvoicesResponse = {
+  invoices: InvoiceItem[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+};
+
+export type RidaItem = {
+  _id: string;
+  ridaName: string;
+  price: number;
+  profit: number;
+  createdAt: string;
+  updatedAt: string;
+};
