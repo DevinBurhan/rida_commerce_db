@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Invoice Diary
 
-## Getting Started
+Full-stack invoice management for a clothing business. Next.js (App Router), MongoDB, JWT auth, and a mobile-first dashboard.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **Environment**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   cp .env.example .env.local
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   Edit `.env.local`: set `MONGODB_URI`, `JWT_SECRET`, and optionally `ADMIN_EMAIL` / `ADMIN_PASSWORD` for the seed user.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **MongoDB**
 
-## Learn More
+   Ensure MongoDB is running (e.g. local or Atlas). Update `MONGODB_URI` in `.env.local` if needed.
 
-To learn more about Next.js, take a look at the following resources:
+3. **Seed admin user**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   npm run seed
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   Default credentials (if not set in `.env.local`): `admin@example.com` / `admin123`.
 
-## Deploy on Vercel
+4. **Run**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Open [http://localhost:3000](http://localhost:3000). You are redirected to `/dashboard`; if not logged in, you’ll be sent to `/login`.
+
+## API
+
+- **Auth:** `POST /api/auth/login` — body: `{ email, password }`, returns `{ token, user }`.
+- **Invoices:** `GET/POST /api/invoices` (list with `?page`, `limit`, `search`, `dateFrom`, `dateTo`); `GET/PUT/DELETE /api/invoices/:id`; `PATCH /api/invoices/:id/payment` — body: `{ amountPaid? }` or `{ isPaymentDone: true }`.
+- **Dashboard:** `GET /api/dashboard/summary` — returns `totalInvoices`, `totalRevenue`, `totalPaidAmount`, `totalPendingAmount`.
+
+All invoice and dashboard routes require `Authorization: Bearer <token>`.
+
+## Invoice number
+
+Format: `YYYYMMDD-XX` (e.g. `20260319-01`). Counter resets per day; generated from the DB to avoid duplicates.
+
+## Tech
+
+- **Backend:** Next.js API routes, Mongoose, JWT, bcrypt, Zod, Decimal.js (calculations).
+- **Frontend:** React, TanStack Query, Tailwind; Decimal.js used for form calculations.
